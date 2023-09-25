@@ -1,0 +1,155 @@
+Observaciones:
+    Para medir la memoria se utiliza la funcion psutil.Process().memory_info().rss, por lo que debe ser instalado el paquete psutil para poder utilizarla.
+    El algoritmo de busqueda en profundidad puede tardar muchisimo si el tablero de entrada no es un caso faborable. Recomiendo no esperar a que termine, mejor detener el programa y ejecutar de nuevo, o modificar cuanto se mezcla el tablero (esto no asegura nada debido al factor aleatorio).
+    Lo anterior tambien puede pasar con el de busqueda en amplitud, pero en mi mediciones tarda bastante menos que el de busqueda en profundidad.
+    Se utilizo como solucion el tablero ordenado de forma:
+        1 2 3
+        4 5 6
+        7 8 _
+
+Resultados:
+Ejecuciones con busqueda en amplitud:
+    Ejecucion 1:
+Memoria usada al inicio 13.66015625  MB
+Solucion encontrada
+tablero inicial: 
+4       6       1
+_       2       3
+7       5       8
+
+Profundidad:  11
+Nodos visitados:  1230
+Memoria usada al final  16.24609375  MB   
+Diferencia  2.5859375  MB
+
+
+    Ejecucion 2:
+Memoria usada al inicio 13.78125  MB
+Solucion encontrada
+tablero inicial: 
+1       3       8
+4       2       5
+7       6       _
+
+Profundidad:  10
+Nodos visitados:  462
+Memoria usada al final  14.87109375  MB
+Diferencia  1.08984375  MB
+
+
+    Ejecucion 3:
+Memoria usada al inicio 13.76171875  MB
+Solucion encontrada
+tablero inicial: 
+_       1       2
+4       8       7
+5       6       3
+
+Profundidad:  16
+Nodos visitados:  11408
+Memoria usada al final  36.390625  MB
+Diferencia  22.62890625  MB
+
+
+    Ejecucion 4:
+Memoria usada al inicio 13.62109375  MB
+Solucion encontrada
+tablero inicial: 
+_       5       3
+2       4       1
+8       6       7
+
+Profundidad:  18
+Nodos visitados:  29227
+Memoria usada al final  71.2890625  MB
+Diferencia  57.66796875  MB
+
+
+    Ejecucion 5:
+Memoria usada al inicio 13.6328125  MB
+Solucion encontrada
+tablero inicial: 
+4       6       1
+7       8       2
+5       _       3
+
+Profundidad:  15
+Nodos visitados:  6524
+Memoria usada al final  26.89453125  MB
+Diferencia  13.26171875  MB
+
+
+
+
+Ejecuciones con busqueda en profundidad:
+    Ejecucion 1:
+Memoria usada al inicio 13.6875  MB
+Solucion encontrada
+tablero inicial: 
+1       5       2
+4       8       3
+7       _       6
+
+Profundidad:  2193
+Nodos visitados:  2241
+Memoria usada al final  18.59375  MB
+Diferencia  4.90625  MB
+
+
+    Ejecucion 2:
+Memoria usada al inicio 13.69140625  MB
+Solucion encontrada
+tablero inicial: 
+1       5       2
+4       3       6
+7       _       8
+
+Profundidad:  3065
+Nodos visitados:  3132
+Memoria usada al final  20.484375  MB
+Diferencia  6.79296875  MB
+
+
+    Ejecucion 3:
+Memoria usada al inicio 13.7890625  MB
+Solucion encontrada
+tablero inicial:
+1       2       3
+4       5       _
+7       8       6
+
+Profundidad:  29
+Nodos visitados:  30
+Memoria usada al final  13.9609375  MB
+Diferencia  0.171875  MB
+
+
+    Ejecucion 4:
+Memoria usada al inicio 13.65625  MB
+Solucion encontrada
+tablero inicial: 
+2       _       3
+1       5       6
+4       7       8
+
+Profundidad:  429
+Nodos visitados:  437
+Memoria usada al final  14.73828125  MB
+Diferencia  1.08203125  MB
+
+
+    Ejecucion 5:
+Memoria usada al inicio 13.80859375  MB
+Solucion encontrada
+tablero inicial: 
+1       3       _
+4       2       5
+7       8       6
+
+Profundidad:  23756
+Nodos visitados:  24365
+Memoria usada al final  65.56640625  MB
+Diferencia  51.7578125  MB
+
+Conclusiones:
+    La busqueda en amplitud es mejor para este problema en especifico, ya que en la mayoria de los casos es mas rapida y encuentra la solucion mas corta.

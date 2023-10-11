@@ -1,0 +1,16 @@
+NAME : simple
+COMMENT : little case to test
+TYPE : TSP
+DIMENSION: 10
+EDGE_WEIGHT_TYPE : EUC_2D
+NODE_COORD_SECTION
+  1 10 10
+  2 20 5
+  3 30 15
+  4 10 20
+  5 20 30
+  6 30 54
+  7 33 23
+  8 11 42
+  9 22 11
+ 10 33 16

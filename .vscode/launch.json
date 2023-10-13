@@ -6,6 +6,20 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Testeo",
+            "request": "launch",
+            "mainClass": "Lab2.Testeo",
+            "projectName": "Inteligencia-Artificial_68e3ee76"
+        },
+        {
+            "type": "java",
+            "name": "Lab2",
+            "request": "launch",
+            "mainClass": "Lab2.Lab2",
+            "projectName": "Inteligencia-Artificial_68e3ee76"
+        },
+        {
+            "type": "java",
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}"

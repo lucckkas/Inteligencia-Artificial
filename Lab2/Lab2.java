@@ -8,13 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Lab2 {
-    // constantes
-    public static final int NUMERO_DE_ITERACIONES = 200;            // numero de iteraciones SIN ENCONTRAR UN NUEVO MINIMO para terminar el programa (NO es el numero de iteraciones totales)
-    public static final int PENALIZACION_DISTANCIA_HEURISTICA = 50; // esto es que tan importante es la distancia al escoger el siguiente nodo (mas penalizacion = mas importante la distancia)
-    public static final int NUMERO_DE_HORMIGAS = 2000;
-    public static final double TASA_DE_EVAPORACION = 0.6;           // esto es que tan rapido se evapora la feromona
-    public static final double TASA_DE_DEPOSITO = 10;               // esto es que tan rapido se deposita la feromona
-    public static final double FEROMONA_INICIAL = 0.001;            // esto es la cantidad de feromona inicial en cada arista
+    // constantes (les quite el final para poder cambiarlas desde el archivo testeo.java y probar diferentes valores)
+    public static int NUMERO_DE_ITERACIONES = 200;            // numero de iteraciones SIN ENCONTRAR UN NUEVO MINIMO para terminar el programa (NO es el numero de iteraciones totales)
+    public static int BETHA = 8; // esto es que tan importante es la distancia al escoger el siguiente nodo
+    public static int ALPHA = 1;  // esto es que tan importante es la feromona al escoger el siguiente nodo (NO cambiar, da error)
+    public static int NUMERO_DE_HORMIGAS = 200;
+    public static double TASA_DE_EVAPORACION = 0.1;           // esto es que tan rapido se evapora la feromona
+    public static double TASA_DE_DEPOSITO = 10;               // esto es que tan rapido se deposita la feromona
+    public static double FEROMONA_INICIAL = 1;            // esto es la cantidad de feromona inicial en cada arista
     
     // variables
     public static double[][] feromonas;
@@ -57,13 +58,14 @@ public class Lab2 {
             }
             // volver al hormiguero
             mover(0);
+            actualizaFeromonas();
         }
 
         public void actualizaFeromonas(){  // dejar el rastro de feromonas
             for (int i = 0; i < recorrido.size(); i++) {
                 int origen = recorrido.get(i)[0];
                 int destino = recorrido.get(i)[1];
-                feromonas[origen][destino] += TASA_DE_DEPOSITO / distancia;
+                feromonas[origen][destino] = (1-TASA_DE_EVAPORACION)*feromonas[origen][destino]+TASA_DE_DEPOSITO / distancia;
                 feromonas[destino][origen] = feromonas[origen][destino];
             }
         }
@@ -111,7 +113,7 @@ public class Lab2 {
                 return faltaVisitar.get((int)(Math.random() * faltaVisitar.size()));
             }else{
                 for (int i = 0; i < faltaVisitar.size(); i++) {
-                    probabilidad += feromonas[posicion][faltaVisitar.get(i)] * heuristica(faltaVisitar.get(i)) / suma;
+                    probabilidad += Math.pow(feromonas[posicion][faltaVisitar.get(i)], ALPHA) * heuristica(faltaVisitar.get(i)) / suma;
                     if (random <= probabilidad) {
                         return faltaVisitar.get(i);
                     }
@@ -139,20 +141,21 @@ public class Lab2 {
         }
         
         private double heuristica(int nodo){
-            return 1/Math.pow(distancias[posicion][nodo], PENALIZACION_DISTANCIA_HEURISTICA);}
+            return 1/Math.pow(distancias[posicion][nodo], BETHA);}
     }
 
     // main
     public static void main(String[] args) {
         String archivo;
+        String encabezado = "";
         // ver si se paso el archivo como argumento
-        if (args.length != 1) {
+        if (args.length == 0) {
             archivo = "a280.tsp";
         }else{
             archivo = args[0];
+            encabezado = args[1];
         }
         leerArchivo(archivo);
-        System.out.println("Archivo leido: " + archivo);
 
         // crear las hormigas
         Hormiga[] hormigas = new Hormiga[NUMERO_DE_HORMIGAS];
@@ -171,38 +174,40 @@ public class Lab2 {
             for (int i = 0; i < hormigas.length; i++) {
                 hormigas[i].recorrer();
             }
-            // evaporar la feromona
-            for (int i = 0; i < feromonas.length; i++) {
-                for (int j = i; j < feromonas.length; j++) {
-                    feromonas[i][j] *= (1 - TASA_DE_EVAPORACION);
-                    feromonas[j][i] = feromonas[i][j];
-                }
-            }
-            // actualizar la feromona
-            for (int i = 0; i < hormigas.length; i++) {
-                hormigas[i].actualizaFeromonas();
-            }
             contador++;
-            // imprimir el recorrido de la hormiga con la menor distancia
+            
             for (int i = 1; i < hormigas.length; i++) {
                 if (hormigas[i].distancia < mejorHormiga.distancia || mejorHormiga.distancia == 0) {
                     mejorHormiga = new Lab2().new Hormiga(hormigas[i]);
-                    System.out.println("Distancia de la hormiga con la menor distancia: " + mejorHormiga.distancia);
+                    System.out.println(mejorHormiga.distancia);
                     contador = 0;
                 }
             }
             
         }
-        System.out.println("Distancia de la hormiga con la menor distancia: " + mejorHormiga.distancia);
-        System.out.println("Recorrido de la hormiga con la menor distancia: " + mejorHormiga.verRecorrido());
         // evaluarCamino(mejorHormiga.getRecorrido());
+        // escribir resultados en un txt (no sobreescribir los resultados anteriores)
+        System.out.println("Escribiendo");
+        java.io.File file = new java.io.File("Lab2/resultados.txt");
+        try {
+            java.io.PrintWriter output = new java.io.PrintWriter(new java.io.FileWriter(file, true));
+            output.println(encabezado);
+            output.println("Recorrido: " + mejorHormiga.verRecorrido());
+            output.println("Distancia: " + mejorHormiga.distancia);
+            output.println();
+            output.close();
+        } catch (java.io.IOException ex) {
+            System.err.println("Error: no se pudo escribir en el archivo.");
+            System.exit(1);
+        }
+        
     }
 
     // funciones
     public static void leerArchivo(String archivo) {
         int[][] coordenadas = null;
         archivo = "Lab2/" + archivo;
-        System.out.println("Leyendo archivo: " + archivo);
+        // System.out.println("Leyendo archivo: " + archivo);
         // leer el archivo
         java.io.File file = new java.io.File(archivo);
         try {

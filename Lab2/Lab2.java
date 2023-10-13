@@ -8,6 +8,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Lab2 {
+    // constantes
+    public static final int NUMERO_DE_ITERACIONES = 200;            // numero de iteraciones SIN ENCONTRAR UN NUEVO MINIMO para terminar el programa (NO es el numero de iteraciones totales)
+    public static final int PENALIZACION_DISTANCIA_HEURISTICA = 50; // esto es que tan importante es la distancia al escoger el siguiente nodo (mas penalizacion = mas importante la distancia)
+    public static final int NUMERO_DE_HORMIGAS = 2000;
+    public static final double TASA_DE_EVAPORACION = 0.6;           // esto es que tan rapido se evapora la feromona
+    public static final double TASA_DE_DEPOSITO = 10;               // esto es que tan rapido se deposita la feromona
+    public static final double FEROMONA_INICIAL = 0.001;            // esto es la cantidad de feromona inicial en cada arista
+    
+    // variables
+    public static double[][] feromonas;
+    public static double[][] distancias;  
+     
     // clase hormiga
     class Hormiga{
         ArrayList<Integer> faltaVisitar;
@@ -17,16 +29,24 @@ public class Lab2 {
         double suma; // esto es para la probabilidad de ir a cada nodo
         public Hormiga(){
             // comprobar que el mapa ya esta inicializado
-            if (mapa == null) {
+            if (feromonas == null || distancias == null) {
                 System.err.println("Error: el mapa no esta inicializado.");
                 System.exit(1);
             }
             posicion = 0;   // asumo que el hormiguero esta en el nodo 0
             distancia = 0;
             faltaVisitar = new ArrayList<>();
-            for (int i = 1; i < mapa.length; i++) {
+            for (int i = 1; i < distancias.length; i++) {
                 faltaVisitar.add(i);
             }
+        }
+
+        public Hormiga(Hormiga original){
+            this.distancia = original.distancia;
+            this.posicion = original.posicion;
+            this.suma = original.suma;
+            this.faltaVisitar = new ArrayList<>(original.faltaVisitar);
+            this.recorrido = new ArrayList<>(original.recorrido);
         }
 
         public void recorrer(){
@@ -43,13 +63,13 @@ public class Lab2 {
             for (int i = 0; i < recorrido.size(); i++) {
                 int origen = recorrido.get(i)[0];
                 int destino = recorrido.get(i)[1];
-                mapa[origen][destino][0] += TASA_DE_DEPOSITO / distancia;
-                mapa[destino][origen][0] = mapa[origen][destino][0];
+                feromonas[origen][destino] += TASA_DE_DEPOSITO / distancia;
+                feromonas[destino][origen] = feromonas[origen][destino];
             }
         }
 
         public String verRecorrido(){
-            String recorrido = "0 -> ";
+            String recorrido = "";
             for (int i = 0; i < this.recorrido.size()-1; i++) {
                 if (i > 171) {
                     recorrido += (this.recorrido.get(i)[0]+1) + " -> ";
@@ -61,13 +81,16 @@ public class Lab2 {
             return recorrido;
         }
 
+        public List<Integer[]> getRecorrido(){
+            return recorrido;
+        }
         private void mover(int destino){
-            distancia += mapa[posicion][destino][1];
+            distancia += distancias[posicion][destino];
             if (destino != 0) {
                 faltaVisitar.remove(faltaVisitar.indexOf(destino));
             }
-            posicion = destino;
             recorrido.add(new Integer[]{posicion, destino});
+            posicion = destino;
         }
 
         private boolean hayNodosSinVisitar(){
@@ -88,7 +111,7 @@ public class Lab2 {
                 return faltaVisitar.get((int)(Math.random() * faltaVisitar.size()));
             }else{
                 for (int i = 0; i < faltaVisitar.size(); i++) {
-                    probabilidad += mapa[posicion][faltaVisitar.get(i)][0] * heuristica(faltaVisitar.get(i)) / suma;
+                    probabilidad += feromonas[posicion][faltaVisitar.get(i)] * heuristica(faltaVisitar.get(i)) / suma;
                     if (random <= probabilidad) {
                         return faltaVisitar.get(i);
                     }
@@ -98,7 +121,12 @@ public class Lab2 {
             System.err.println("Error: no se encontro el siguiente nodo. "
                     + "\n\trandom: " + random + "\n\tprobabilidad: " + probabilidad
                     + "\n\tsuma: " + suma + "\n\tposicion: " + posicion + "\n\tfaltaVisitar: " + faltaVisitar 
-                    + "\n\ttamano faltaVisitar: " + faltaVisitar.size() + "\n");
+                    + "\n\ttamano faltaVisitar: " + faltaVisitar.size() + "\n"
+                    + "\n\trecorrido: " + recorrido.toString() + "\n\ttamano recorrido: " + recorrido.size() + "\n");
+
+            if (Double.compare(suma, Double.POSITIVE_INFINITY) == 0) {
+                System.out.println("Verificar que no se haya repetido un nodo");
+            }
 
             return -1;
         }
@@ -106,24 +134,14 @@ public class Lab2 {
         private void calcularSuma(){
             suma = 0;
             for (int i = 0; i < faltaVisitar.size(); i++) {
-                suma += mapa[posicion][faltaVisitar.get(i)][0] * heuristica(faltaVisitar.get(i));
+                suma += feromonas[posicion][faltaVisitar.get(i)] * heuristica(faltaVisitar.get(i));
             }
         }
         
         private double heuristica(int nodo){
-            return 1/Math.pow(mapa[posicion][nodo][1], 3);}
+            return 1/Math.pow(distancias[posicion][nodo], PENALIZACION_DISTANCIA_HEURISTICA);}
     }
 
-    // constantes
-    public static final int NUMERO_DE_HORMIGAS = 200;
-    public static final double TASA_DE_EVAPORACION = 0.01;   // esto es que tan rapido se evapora la feromona  .4
-    public static final double TASA_DE_DEPOSITO = 50;      // esto es que tan rapido se deposita la feromona  .6
-    public static final double FEROMONA_INICIAL = 0.1;   // esto es la cantidad de feromona inicial en cada arista
-    
-    // variables
-    public static double[][][] mapa;    // matriz de adyacencia que contiene la feromona en cada arista,
-                                        // ejemplo mapa[i][k][0] es la feromona en la arista i->k y mapa[i][k][1] es la distancia en la arista i->k
-     
     // main
     public static void main(String[] args) {
         String archivo;
@@ -141,11 +159,11 @@ public class Lab2 {
         for (int i = 0; i < hormigas.length; i++) {
             hormigas[i] = new Lab2().new Hormiga();
         }
-        Hormiga mejorHormiga = hormigas[0];
-        double promedio = 0;
+        // guardo una copia de la hormiga con la menor distancia
+        Hormiga mejorHormiga = new Lab2().new Hormiga(hormigas[0]);
         int contador = 0;
         // bucle principal
-        while (contador < 1000) {
+        while (contador < NUMERO_DE_ITERACIONES) {
             for (int i = 0; i < hormigas.length; i++) {
                 hormigas[i] = new Lab2().new Hormiga();
             }
@@ -153,34 +171,31 @@ public class Lab2 {
             for (int i = 0; i < hormigas.length; i++) {
                 hormigas[i].recorrer();
             }
+            // evaporar la feromona
+            for (int i = 0; i < feromonas.length; i++) {
+                for (int j = i; j < feromonas.length; j++) {
+                    feromonas[i][j] *= (1 - TASA_DE_EVAPORACION);
+                    feromonas[j][i] = feromonas[i][j];
+                }
+            }
             // actualizar la feromona
             for (int i = 0; i < hormigas.length; i++) {
                 hormigas[i].actualizaFeromonas();
             }
-            promedio = hormigas[0].distancia;
             contador++;
             // imprimir el recorrido de la hormiga con la menor distancia
             for (int i = 1; i < hormigas.length; i++) {
-                promedio += hormigas[i].distancia;
                 if (hormigas[i].distancia < mejorHormiga.distancia || mejorHormiga.distancia == 0) {
-                    mejorHormiga = hormigas[i];
+                    mejorHormiga = new Lab2().new Hormiga(hormigas[i]);
                     System.out.println("Distancia de la hormiga con la menor distancia: " + mejorHormiga.distancia);
-                    //System.out.println("Recorrido de la hormiga con la menor distancia: " + mejorHormiga.verRecorrido());
                     contador = 0;
                 }
             }
-            promedio /= hormigas.length;
-            // evaporar la feromona
-            for (int i = 0; i < mapa.length; i++) {
-                for (int j = i; j < mapa.length; j++) {
-                    mapa[i][j][0] *= (1 - TASA_DE_EVAPORACION);
-                    mapa[j][i][0] = mapa[i][j][0];
-                }
-            }
+            
         }
-        System.out.println(promedio);
         System.out.println("Distancia de la hormiga con la menor distancia: " + mejorHormiga.distancia);
         System.out.println("Recorrido de la hormiga con la menor distancia: " + mejorHormiga.verRecorrido());
+        // evaluarCamino(mejorHormiga.getRecorrido());
     }
 
     // funciones
@@ -234,13 +249,14 @@ public class Lab2 {
     }
 
     public static void llenarMapa(int[][] coordenadas){
-        mapa = new double[coordenadas.length][coordenadas.length][2];
-        // llenar la matriz, optimizando que mapa[i][k] = mapa[k][i], por lo que NO necesito 2 for con coordenadas.length
+        feromonas = new double[coordenadas.length][coordenadas.length];
+        distancias = new double[coordenadas.length][coordenadas.length];
         for (int i = 0; i < coordenadas.length; i++) {
             for (int j = i; j < coordenadas.length; j++) {
-                mapa[i][j][0] = FEROMONA_INICIAL;
-                mapa[i][j][1] = distancia(coordenadas[i], coordenadas[j]);
-                mapa[j][i] = mapa[i][j];
+                feromonas[i][j] = FEROMONA_INICIAL;
+                distancias[i][j] = distancia(coordenadas[i], coordenadas[j]);
+                feromonas[j][i] = feromonas[i][j];
+                distancias[j][i] = distancias[i][j];
             }
         }
     }
@@ -249,4 +265,11 @@ public class Lab2 {
         return Math.sqrt(Math.pow(x[0]-y[0], 2) + Math.pow(x[1]-y[1], 2));
     }
 
+    public static void evaluarCamino(List<Integer[]> camino){
+        double distancia = 0;
+        for (int i = 0; i < camino.size(); i++) {
+            distancia += distancias[camino.get(i)[0]][camino.get(i)[1]];
+        }
+        System.out.println("evaluacion: " + distancia);
+    }
 }
